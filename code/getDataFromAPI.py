@@ -156,6 +156,36 @@ for area in area_codes:
                 output_file,
             )
 
+            # Import Match Info
+            match_info_dict = {}
+            for match in matches:
+                url = BASE_URL + "/matches/" + str(match["matchId"])
+                match_info_dict[match["matchId"]] = getDataFromAPI(url, None, None)
+            output_file = (
+                "match_info_"
+                + comp["name"].replace(" ", "_")
+                + "_"
+                + season["season"]["name"].replace("/", "_")
+            )
+            pickle.dump(match_info_dict, open(DATA_FOLDER + "\\" + output_file, "wb"))
+
+            # Import Match Formations
+            match_formations_dict = {}
+            for match in matches:
+                url = BASE_URL + "/matches/" + str(match["matchId"]) + "/formations"
+                match_formations_dict[match["matchId"]] = getDataFromAPI(
+                    url, None, None
+                )
+            output_file = (
+                "match_formations_"
+                + comp["name"].replace(" ", "_")
+                + "_"
+                + season["season"]["name"].replace("/", "_")
+            )
+            pickle.dump(
+                match_formations_dict, open(DATA_FOLDER + "\\" + output_file, "wb")
+            )
+
             # Import Match Events
             events_dict = {}
             for match in matches:
