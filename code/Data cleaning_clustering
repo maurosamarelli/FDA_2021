@@ -1,0 +1,53 @@
+from pprint import pprint
+import pandas as pd
+import os
+import pickle
+import numpy as np
+
+data = open("path\players_advancedstats_Serie_A_2020_2021", "rb")
+ad_st = pickle.load(data)
+
+keys = []
+data_analysis = []
+for key, value in enumerate(ad_st):
+    keys.append(value)
+    
+for n in keys:
+    data_analysis.append(ad_st[n])
+    
+dataset = pd.DataFrame(data_analysis)
+index = dataset['playerId'].index[dataset['playerId'].apply(np.isnan)]
+data = dataset.drop(index)
+
+data['playerId'], data['competitionId'] = data['playerId'].astype(int), data['competitionId'].astype(int)
+data  = data.reset_index()
+a = data['total'].dropna()
+b = data['average'].dropna()
+c = data['percent'].dropna()
+
+
+a = a.apply( lambda row: pd.Series(row))
+b = b.apply( lambda row: pd.Series(row))
+c = c.apply( lambda row: pd.Series(row))
+frames= [data, a, b, c]
+
+new_data = pd.concat(frames, axis =1)
+new_data = new_data.drop(columns=['index','positions', 'total', 'average','percent', 'roundId','seasonId', 'index'])
+
+index_matches = new_data.index[new_data['matches']==0].tolist()
+
+new_data = new_data.drop(index_matches)
+new_data  = new_data.reset_index()
+
+from sklearn.preprocessing import MinMaxScaler
+columns_names = list(new_data.columns.values)
+columns_names.remove('playerId')
+scaler = MinMaxScaler()
+
+x = new_data.drop(columns=[ 'playerId'])
+X = scaler.fit_transform(x)
+X = pd.DataFrame(X, columns = [columns_names] )
+
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=5, random_state=0).fit(X)
+
